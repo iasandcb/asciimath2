@@ -1,0 +1,36 @@
+name: Publish to PyPI
+
+# Publishing is tied to a GitHub Release rather than to a tag or a push: the
+# release is the thing a human deliberately creates, and it leaves the
+# version, its notes and the uploaded files in one auditable place.
+#
+# No API token is involved anywhere. PyPI trusts this repository's workflow
+# directly (trusted publishing / OIDC), which is why the `id-token: write`
+# permission below is load-bearing - without it uv has no identity to present
+# and the upload is rejected.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+
+      # A release that can't pass its own test suite shouldn't reach PyPI -
+      # and a version published by mistake can never be replaced, only yanked.
+      - name: Test
+        run: uv run --frozen pytest -q
+
+      - name: Build
+        run: uv build
+
+      - name: Publish
+        run: uv publish --trusted-publishing always
