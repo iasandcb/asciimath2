@@ -20,7 +20,9 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      # Pinned to an exact version on purpose: setup-uv publishes no rolling
+      # major tag, so "@v10" doesn't resolve at all.
+      - uses: astral-sh/setup-uv@v10.1.0
         with:
           enable-cache: true
 
