@@ -65,7 +65,7 @@ CONST_MACROS: dict[str, str] = {
     "neg": "not", "lnot": "not", "implies": "=>",
     "rightsquigarrow": "~>", "nrightarrow": "-/->", "nleftarrow": "<-/-",
     "nleftrightarrow": "<-/->", "Longleftarrow": "<==", "iff": "iff",
-    "forall": "AA", "exists": "EE", "bot": "_|_", "top": "TT",
+    "forall": "AA", "exists": "EE", "bot": "_|_", "top": "TT", "intercal": "TT",
     "vdash": "|--", "models": "|==",
 
     # Calculus / big operators

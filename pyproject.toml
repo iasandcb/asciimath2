@@ -1,6 +1,6 @@
 [project]
 name = "asciimath2"
-version = "0.1.0"
+version = "0.1.1"
 description = "LaTeX -> AsciiMath2 conversion (AsciiMath2 = asciimath.org + the asciimath-parser extensions, see SPEC.md)"
 readme = "README.md"
 authors = [

@@ -71,6 +71,15 @@ def _tokenize_chars(chars: str) -> list[FlatToken]:
             tokens.append(FlatToken("OP" if text == "!!" else "DIGITS", text))
         elif len(text) == 1 and text.isalpha():
             tokens.append(FlatToken("LETTER", text))
+        elif text == "*":
+            # LaTeX's literal `*` always typesets as an asterisk (∗, same as
+            # `\ast`), but AsciiMath2's bare `*` is `\cdot` - left as-is,
+            # an adjoint `U^*` or a convolution `f * g` would render as a
+            # centered dot. `**` is AsciiMath2's asterisk (SPEC.md, symbol
+            # table). Adjacent ones stay separate tokens, so `**` in LaTeX
+            # becomes `** **` rather than the `***`/`****` AsciiMath2 would
+            # read as `\star` and more.
+            tokens.append(FlatToken("OP", "**"))
         else:
             tokens.append(FlatToken("OP", text))
     return tokens
@@ -91,6 +100,19 @@ def _script_arg(arg: str, atomic: bool) -> str:
     if atomic and arg not in ("+", "-"):
         return arg
     return f"({arg})"
+
+
+# A superscript that is just the letter T is a transpose (`A^T`, `x^T A x`,
+# `(AB)^T`), and AsciiMath2 spells that `TT` (\top) - a bare `T` would
+# render as an italic variable. Matched on the *rendered* argument, so the
+# upright spellings (`\mathrm{T}`, `\mathsf{T}`, which render as
+# `rm(T)`/`sf(T)`) and the inverse transpose `A^{-T}` are covered by the
+# same check. Only superscripts: a `T` subscript is an ordinary label.
+_TRANSPOSE_ARGS = {"T": "TT", "rm(T)": "TT", "sf(T)": "TT", "- T": "- TT", "- rm(T)": "- TT", "- sf(T)": "- TT"}
+
+
+def _superscript_arg(arg: str) -> str:
+    return _TRANSPOSE_ARGS.get(arg, arg)
 
 
 class Converter:
@@ -149,6 +171,8 @@ class Converter:
                 i += 1
                 arg, atomic, i = self._render_base(tokens, i, bare=False)
                 op = "^" if tok.kind == "SUP" else "_"
+                if op == "^":
+                    arg = _superscript_arg(arg)
                 pieces.append(f"{op}{_script_arg(arg, atomic)}")
                 continue
             piece, _atomic, i = self._render_base(tokens, i)
@@ -165,6 +189,8 @@ class Converter:
             op = "^" if tokens[i].kind == "SUP" else "_"
             i += 1
             arg, atomic, i = self._render_base(tokens, i, bare=False)
+            if op == "^":
+                arg = _superscript_arg(arg)
             base = f"{base}{op}{_script_arg(arg, atomic)}"
         return base, i
 
