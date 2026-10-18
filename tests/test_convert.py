@@ -8,7 +8,7 @@ from asciimath2 import Config, UnsupportedLatexError, convert
     [
         # Basics
         (r"a + b - c", "a + b - c"),
-        (r"2x + 3", "2 x + 3"),
+        (r"2x + 3", "2x + 3"),
         (r"\alpha + \beta = \gamma", "alpha + beta = gamma"),
         # Fractions / roots
         (r"\frac{1}{2}", "1/2"),
@@ -20,8 +20,8 @@ from asciimath2 import Config, UnsupportedLatexError, convert
         (r"x^2", "x^2"),
         (r"x_1", "x_1"),
         (r"x_1^2", "x_1^2"),
-        (r"x^{2n}", "x^(2 n)"),
-        (r"e^{-x}", "e^(- x)"),
+        (r"x^{2n}", "x^(2n)"),
+        (r"e^{-x}", "e^(-x)"),
         (r"x^{\sqrt{2}}", "x^sqrt(2)"),
         # A bare "+"/"-" as a *whole* superscript/subscript (not part of a
         # longer expression like "-x" above) is ambiguous in
@@ -34,31 +34,31 @@ from asciimath2 import Config, UnsupportedLatexError, convert
         (r"A_-", "A_(-)"),
         (r"\Sigma_{n+1}^{+}", "Sigma_(n + 1)^(+)"),
         (r"\sum_{i=1}^{n} i^2", "sum_(i = 1)^n i^2"),
-        (r"\lim_{x \to \infty} f(x)", "lim_(x to oo) f ( x )"),
+        (r"\lim_{x \to \infty} f(x)", "lim_(x to oo) f(x)"),
         # Delimiters
         (r"\left( x + y \right)^2", "(x + y)^2"),
         (r"\left| x \right|", "|x|"),
         (r"\left\| v \right\|", "||v||"),
         (r"\left\{ x \right\}", "{x}"),
         (r"\left[ x \right)", "[x)"),
-        (r"\left\langle a, b \right\rangle", "(:a , b:)"),
+        (r"\left\langle a, b \right\rangle", "(:a, b:)"),
         # Relations / logic / arrows
         (r"a \le b \implies a - c \le b - c", "a <= b => a - c <= b - c"),
-        (r"\forall x \in \mathbb{R}, x^2 \ge 0", "AA x in RR , x^2 >= 0"),
+        (r"\forall x \in \mathbb{R}, x^2 \ge 0", "AA x in RR, x^2 >= 0"),
         (r"x \ne y", "x != y"),
         (r"a \to b", "a to b"),
         # Functions
         (r"\sin^2 x + \cos^2 x = 1", "sin^2 x + cos^2 x = 1"),
         (r"\log_2 8 = 3", "log_2 8 = 3"),
-        (r"\operatorname{sgn}(-3)", "op(sgn) ( - 3 )"),
+        (r"\operatorname{sgn}(-3)", "op(sgn)(-3)"),
         # Accents / fonts / text
-        (r"\overline{AB}", "overline(A B)"),
+        (r"\overline{AB}", "overline(AB)"),
         (r"\vec{v}", "vec(v)"),
         (r"\mathbf{v} \cdot \mathbf{w}", "bb(v) cdot bb(w)"),
         # LaTeX's literal "*" is an asterisk (\ast), AsciiMath2's bare "*"
         # is \cdot - so it has to come out as "**" (adjoint, conjugate,
         # convolution, ...). \cdot and \star keep their own names.
-        (r"A = U D U^*", "A = U D U^**"),
+        (r"A = U D U^*", "A = UDU^**"),
         (r"U^{*} U = I", "U^** U = I"),
         (r"z^* + 1", "z^** + 1"),
         (r"f * g", "f ** g"),
@@ -69,20 +69,20 @@ from asciimath2 import Config, UnsupportedLatexError, convert
         # A superscript that is exactly T is a transpose -> "TT" (\top), in
         # every common spelling; T as a subscript or a base stays a letter.
         (r"A^T", "A^TT"),
-        (r"(AB)^T = B^T A^T", "( A B )^TT = B^TT A^TT"),
-        (r"x^T A x", "x^TT A x"),
+        (r"(AB)^T = B^T A^T", "(AB)^TT = B^TT A^TT"),
+        (r"x^T A x", "x^TT Ax"),
         (r"\mathbf{x}^{T}", "bb(x)^TT"),
         (r"A^\top", "A^TT"),
         (r"A^\intercal", "A^TT"),
         (r"A^{\mathsf{T}}", "A^TT"),
         (r"A^{\mathrm{T}}", "A^TT"),
-        (r"A^{-T}", "A^(- TT)"),
+        (r"A^{-T}", "A^(-TT)"),
         (r"A_T", "A_T"),
         (r"T^2", "T^2"),
-        (r"A^{Tx}", "A^(T x)"),
+        (r"A^{Tx}", "A^(Tx)"),
         (r"\mathbb{R}^n", "RR^n"),
         (r"\mathbb{Z}", "ZZ"),
-        (r"\mathcal{L}\{f\}", "cc(L) { f }"),
+        (r"\mathcal{L}\{f\}", "cc(L){f}"),
         (r"\text{hello world}", '"hello world"'),
         # Two-arg macros
         (r"\binom{n}{k}", "(n choose k)"),
@@ -90,12 +90,12 @@ from asciimath2 import Config, UnsupportedLatexError, convert
         (r"\stackrel{a}{b}", "stackrel(a)(b)"),
         (r"\color{red}{x^2}", "color(red)(x^2)"),
         # Primes / factorial pass straight through
-        (r"f'(x)", "f ' ( x )"),
+        (r"f'(x)", "f'(x)"),
         (r"n!", "n !"),
         # \boxed has no AsciiMath2 equivalent (no framed-box construct) -
         # the box is dropped, the content survives.
         (r"\boxed{x = 1}", "x = 1"),
-        (r"\boxed{(\Omega,\mathcal F,\mathbb P)}", "( Omega , cc(F) , bbb(P) )"),
+        (r"\boxed{(\Omega,\mathcal F,\mathbb P)}", "(Omega, cc(F), bbb(P))"),
     ],
 )
 def test_expressions(latex: str, expected: str):
@@ -125,7 +125,7 @@ class TestMatrices:
         got = convert(
             r"\begin{cases} x^2, & x > 0 \\ -x, & x \le 0 \end{cases}"
         )
-        assert got == "{x^2, x > 0; - x, x <= 0:}"
+        assert got == "{x^2, x > 0; -x, x <= 0:}"
 
     def test_trailing_row_break_does_not_leave_an_empty_row(self):
         got = convert(r"\begin{pmatrix} a & b \\ c & d \\ \end{pmatrix}")
@@ -202,7 +202,7 @@ class TestUnbracedSingleTokenArguments:
 
     def test_originally_reported_expression(self):
         got = convert(r"\mathcal B(X)=\sigma(\mathcal T)")
-        assert got == "cc(B) ( X ) = sigma ( cc(T) )"
+        assert got == "cc(B)(X) = sigma (cc(T))"
 
 
 class TestSizingCommandsAreDropped:
@@ -212,7 +212,7 @@ class TestSizingCommandsAreDropped:
 
     def test_bigl_bigr_dropped(self):
         got = convert(r"\sigma\bigl(\{a\}\bigr)")
-        assert got == "sigma ( { a } )"
+        assert got == "sigma ({a})"
         assert "bigl" not in got and "bigr" not in got
 
 
@@ -244,7 +244,7 @@ class TestRestrictionBar:
             r"\Sigma_{n+1}^{+}\big|_{Cl_n} \cong \Sigma_n \cong \Sigma_{n+1}^{-}\big|_{Cl_n}."
         )
         assert got == (
-            "Sigma_(n + 1)^(+) mid_(C l_n) ~= Sigma_n ~= Sigma_(n + 1)^(-) mid_(C l_n) ."
+            "Sigma_(n + 1)^(+) mid_(Cl_n) ~= Sigma_n ~= Sigma_(n + 1)^(-) mid_(Cl_n) ."
         )
 
 
@@ -280,3 +280,39 @@ class TestCustomSymbols:
         cfg = Config(custom_text={"LIM": "LIM"})
         assert convert(r"\operatorname*{LIM}", cfg) == "LIM"
         assert convert(r"\operatorname{arg}") == "op(arg)"
+
+
+class TestSpacing:
+    """Output is written the way it'd be typed - "abc", "2x", "f(x)" - and
+    spaced only where joining would change what the renderer reads (see
+    tokens.py) or the source asked for space."""
+
+    @pytest.mark.parametrize(
+        "latex, expected",
+        [
+            (r"abc", "abc"),
+            (r"f(x)", "f(x)"),
+            (r"2x^2 + 3x", "2x^2 + 3x"),
+            (r"(x-1)(x+2)", "(x - 1)(x + 2)"),
+            (r"\sin(x)", "sin(x)"),
+            (r"f(-x, -y)", "f(-x, -y)"),
+            (r"x = -1", "x = -1"),
+            # Joined, these would read as symbols: xx (times), pi, cc
+            # (mathcal), to (arrow), dx (an upright d).
+            (r"xx", "x x"),
+            (r"pi", "p i"),
+            (r"cc", "c c"),
+            (r"to", "t o"),
+            (r"dx", "d x"),
+            (r"x \in (a,b)", "x in (a, b)"),
+            # Explicit spacing in the source stays a space.
+            (r"f(x)\,dx", "f(x) d x"),
+        ],
+    )
+    def test_spacing(self, latex, expected):
+        assert convert(latex) == expected
+
+    def test_extra_tokens_are_not_formed(self):
+        assert convert(r"the") == "the"
+        assert convert(r"the", Config(extra_tokens=frozenset({"the"}))) == "th e"
+        assert convert(r"x \sqcup y", Config(custom_macros={"sqcup": "suu"})) == "x suu y"

@@ -35,6 +35,7 @@ from pylatexenc.latexwalker import (
 )
 
 from .config import Config
+from .tokens import same_reading
 from .errors import UnsupportedLatexError
 from .latex_context import make_walker
 from . import symbols as S
@@ -108,11 +109,49 @@ def _script_arg(arg: str, atomic: bool) -> str:
 # upright spellings (`\mathrm{T}`, `\mathsf{T}`, which render as
 # `rm(T)`/`sf(T)`) and the inverse transpose `A^{-T}` are covered by the
 # same check. Only superscripts: a `T` subscript is an ordinary label.
-_TRANSPOSE_ARGS = {"T": "TT", "rm(T)": "TT", "sf(T)": "TT", "- T": "- TT", "- rm(T)": "- TT", "- sf(T)": "- TT"}
+_TRANSPOSE_ARGS = {"T": "TT", "rm(T)": "TT", "sf(T)": "TT", "-T": "-TT", "-rm(T)": "-TT", "-sf(T)": "-TT"}
 
 
 def _superscript_arg(arg: str) -> str:
     return _TRANSPOSE_ARGS.get(arg, arg)
+
+
+# A single letter or a number: the pieces typed together as a product.
+_ATOM_RE = re.compile(r"[A-Za-z]|\d+(?:\.\d+)?")
+# ...and one with a script on it, which still goes on after a coefficient:
+# 2x^2, not 2 x^2.
+_SCRIPTED_ATOM_RE = re.compile(r"(?:[A-Za-z]|\d+(?:\.\d+)?)[_^]")
+_OPENERS = ("(", "[", "{")
+_CLOSERS = (")", "]", "}")
+# Spacing in the source that should stay a space between two pieces.
+_GAP_MACROS = {",", ";", ":", " "}
+# What a "-" right after is a sign, not a subtraction.
+_SIGN_CONTEXTS = {",", "=", "<", ">", "<=", ">=", "!=", "->", "=>", "~~", "-="}
+_PRIMES = {"'", "''", "'" * 3}
+# Function names written against their argument's bracket, as in sin(x).
+_FUNCTION_WORDS = {
+    "sin", "cos", "tan", "cot", "sec", "csc", "sinh", "cosh", "tanh", "coth", "sech", "csch",
+    "arcsin", "arccos", "arctan", "exp", "log", "ln", "det", "dim", "gcd", "lcm", "min", "max",
+    "Sup", "inf", "lim", "sgn", "arg", "Arg", "Pr",
+}
+
+
+def _joins(left: str, right: str) -> bool:
+    """Whether two adjacent pieces would be written without a space between
+    them (tokens.py still has the last word): letters and numbers in a row,
+    a letter or function name and the bracket it's applied to, and brackets
+    and commas against what they enclose or follow. Operators and other
+    words keep their spaces."""
+    left_atom = _ATOM_RE.fullmatch(left) is not None
+    if left_atom and (_ATOM_RE.fullmatch(right) or _SCRIPTED_ATOM_RE.match(right)):
+        return True
+    if right.startswith(_CLOSERS) or right == "," or right in _PRIMES:
+        return True
+    if left in _OPENERS:
+        return True
+    if right.startswith(_OPENERS):
+        return left_atom or left in _FUNCTION_WORDS or left.endswith(_CLOSERS) or left.endswith("'")
+    return False
 
 
 class Converter:
@@ -161,6 +200,10 @@ class Converter:
 
     def render_flat(self, tokens: list[FlatToken]) -> tuple[str, bool]:
         pieces: list[str] = []
+        # Whether the source had explicit spacing (\, \; ...) before each
+        # piece - kept as a space in the output, see _join.
+        spaced: list[bool] = []
+        gap = False
         i = 0
         n = len(tokens)
         while i < n:
@@ -174,6 +217,8 @@ class Converter:
                 if op == "^":
                     arg = _superscript_arg(arg)
                 pieces.append(f"{op}{_script_arg(arg, atomic)}")
+                spaced.append(gap)
+                gap = False
                 continue
             piece, _atomic, i = self._render_base(tokens, i)
             piece, i = self._absorb_scripts(tokens, i, piece)
@@ -181,7 +226,35 @@ class Converter:
             # them rather than leaving a stray joining space in the output.
             if piece != "":
                 pieces.append(piece)
-        return " ".join(pieces), len(pieces) == 1
+                spaced.append(gap)
+                gap = False
+            elif tok.kind == "MACRO" and tok.value.macroname in _GAP_MACROS:
+                gap = True
+        return self._join(pieces, spaced), len(pieces) == 1
+
+    def _join(self, pieces: list[str], spaced: list[bool]) -> str:
+        """The pieces as one line: written together where that's how it'd
+        be typed - "abc", "2x", "f(x)", "(a+b)", "a, b" - and only where the
+        renderer reads the result as the same symbols (tokens.py: "x" "x"
+        must not become `xx`, nor "p" "i" `pi`); spaced everywhere else, and
+        wherever the source had explicit spacing."""
+        if not pieces:
+            return ""
+        extra = self.cfg.renderer_tokens
+        out = pieces[0]
+        run = pieces[0]  # the text since the last space
+        for k in range(1, len(pieces)):
+            prev, piece, gap = pieces[k - 1], pieces[k], spaced[k]
+            # A sign with nothing before it to subtract from goes on its
+            # operand: (-3), x = -1, not (- 3).
+            unary = prev in ("-", "+") and (k == 1 or pieces[k - 2] in _OPENERS or pieces[k - 2] in _SIGN_CONTEXTS)
+            if not gap and (unary or _joins(prev, piece)) and same_reading(run, piece, extra):
+                out += piece
+                run += piece
+            else:
+                out += " " + piece
+                run = piece
+        return out
 
     def _absorb_scripts(self, tokens: list[FlatToken], i: int, base: str) -> tuple[str, int]:
         n = len(tokens)

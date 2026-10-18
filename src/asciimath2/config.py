@@ -25,6 +25,8 @@ class Config:
     - `custom_macros`: bare, no-argument LaTeX macro name (no backslash) ->
       AsciiMath2 token, e.g. `{"sqcup": "suu"}` for `\\sqcup`. Consulted only
       for a macro name none of the built-in tables recognize.
+    - `extra_tokens`: further symbols the downstream renderer knows; see
+      the field.
     - `custom_text`: exact `\\text{...}`/`\\operatorname{...}`/
       `\\operatorname*{...}` argument content -> AsciiMath2 token, e.g.
       `{"pmf": "pmf"}` to make `\\text{pmf}` emit the bare word `pmf` instead
@@ -40,6 +42,14 @@ class Config:
     bar_as_mid: bool = True
     custom_macros: dict[str, str] = field(default_factory=dict)
     custom_text: dict[str, str] = field(default_factory=dict)
+    # Symbols the renderer has been given beyond its own (a custom-symbols
+    # table, say), so output is never joined into one of them - see
+    # tokens.py. custom_macros' and custom_text's tokens count already.
+    extra_tokens: frozenset[str] = frozenset()
+
+    @property
+    def renderer_tokens(self) -> frozenset[str]:
+        return frozenset(self.extra_tokens) | frozenset(self.custom_macros.values()) | frozenset(self.custom_text.values())
 
     @property
     def row_break(self) -> str:
